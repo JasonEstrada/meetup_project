@@ -1,0 +1,11 @@
+apache-airflow-providers-snowflake
+apache-airflow-providers-amazon
+apache-airflow-providers-slack
+snowflake-connector-python
+snowflake-sqlalchemy
+boto3
+botocore
+pandas
+numpy
+requests
+python-dotenv

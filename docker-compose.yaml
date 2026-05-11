@@ -1,0 +1,47 @@
+services:
+  db:
+    container_name: postgres_c
+    image: postgres:16.13
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: db_user
+      POSTGRES_PASSWORD: db_password
+      POSTGRES_DB: db
+    volumes:
+      - ./postgres/airflow_init.sql:/docker-entrypoint-initdb.d/airflow_init.sql
+    networks:
+      - my-network
+
+  af:
+    container_name: airflow_c
+    image: apache/airflow:3.0.0
+    user: "1000:0"
+    ports:
+      - 8080:8080
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@db:5432/airflow_db
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./airflow/data:/opt/airflow/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./requirements.txt:/requirements.txt
+    group_add:
+      - '1001'
+    depends_on:
+      - db
+    networks:
+      - my-network
+    command: >
+      bash -c "
+        pip install --no-cache-dir -r /requirements.txt &&
+        airflow db migrate &&
+        airflow standalone
+      "
+    restart: unless-stopped
+
+networks:
+  my-network:
+    driver: bridge
